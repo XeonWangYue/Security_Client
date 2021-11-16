@@ -22,6 +22,12 @@ public class Client {
     static int port = 8090;
 
     public static void main(String[] args) {
+        if (args.length > 0) {
+            ip = args[0];
+        }
+        if (args.length > 1) {
+            port = Integer.valueOf(args[1]);
+        }
         EventLoopGroup eventGroup = new NioEventLoopGroup();
         Bootstrap bootstrap = new Bootstrap();
         bootstrap.group(eventGroup)

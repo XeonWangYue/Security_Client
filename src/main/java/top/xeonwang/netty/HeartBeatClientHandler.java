@@ -16,6 +16,8 @@ import java.nio.charset.StandardCharsets;
  */
 @Slf4j
 public class HeartBeatClientHandler extends ChannelInboundHandlerAdapter {
+    Integer waring = 0;
+
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
         if (evt instanceof IdleStateEvent) {
@@ -26,13 +28,29 @@ public class HeartBeatClientHandler extends ChannelInboundHandlerAdapter {
                 ObjectMapper mapper = new ObjectMapper();
                 SystemInfoVO info = SystemInfoVO.toSystemInfo();
                 String ret = mapper.writeValueAsString(info);
-                log.info(info.toString());
+                log.debug(info.toString());
                 byte[] content = ret.getBytes(StandardCharsets.UTF_8);
-                log.info(String.valueOf(content.length));
+                log.debug(String.valueOf(content.length));
                 msg.setContent(content);
                 msg.setLength(content.length);
                 log.info("心跳事件发送" + ctx.channel().remoteAddress());
                 ctx.writeAndFlush(msg);
+            }
+        }
+    }
+
+    @Override
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        if (msg instanceof MsgProtocol) {
+            MsgProtocol p = (MsgProtocol) msg;
+            String str = new String(p.getContent(), StandardCharsets.UTF_8);
+            log.error(str);
+
+            if (p.getStep() == 1) {
+                log.info("断网警告");
+            }
+            if (p.getStep() == 2) {
+                log.info("断网");
             }
         }
     }
